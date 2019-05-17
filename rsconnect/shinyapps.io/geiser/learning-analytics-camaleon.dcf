@@ -1,0 +1,12 @@
+name: learning-analytics-camaleon
+title: learning-analytics-camaleon
+username:
+account: geiser
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 934654
+bundleId: 2091137
+url: https://geiser.shinyapps.io/learning-analytics-camaleon/
+when: 1558082111.3244
+asMultiple: FALSE
+asStatic: FALSE

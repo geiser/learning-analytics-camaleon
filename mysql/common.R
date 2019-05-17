@@ -14,10 +14,12 @@ library(dplyr)
 # function to kill db connection
 kill_db_connections <- function (con = NULL) {
   if (!is.null(con)) dbDisconnect(con)
-  all_connections <- dbListConnections(RMySQL::MySQL())
-  if (length(all_connections) > 10) {
-    for(con in all_connections) { dbDisconnect(con) }
-    print(paste(length(all_connections), " connections killed."))
+  if (Sys.getenv("R_CONFIG_ACTIVE") == "development") {
+    all_connections <- dbListConnections(RMySQL::MySQL())
+    if (length(all_connections) > 10) {
+      for(con in all_connections) { dbDisconnect(con) }
+      print(paste(length(all_connections), " connections killed."))
+    }
   }
 }
 
@@ -27,20 +29,20 @@ sql.as.df <- function(statementSQL, encoding_fields = c()
   kill_db_connections()
   conn_args <- config::get("dataconnection")
   
-  #if (Sys.getenv("R_CONFIG_ACTIVE") == "development") {
+  if (Sys.getenv("R_CONFIG_ACTIVE") == "development") {
     con <- dbConnect(RMySQL::MySQL()
                      , user = conn_args$uid
                      , password = conn_args$pwd
                      , dbname = conn_args$database
                      , host = conn_args$server)
-  #} else {
-  #  con <- dbConnect(odbc::odbc(), Driver = conn_args$driver
-  #                   , UID    = conn_args$uid
-  #                   , PWD    = conn_args$pwd
-  #                   , Database = conn_args$database
-  #                   , Server = conn_args$server
-  #                   , Port   = conn_args$port)
-  #}
+  } else {
+    con <- dbConnect(odbc::odbc(), Driver = conn_args$driver
+                     , UID    = conn_args$uid
+                     , PWD    = conn_args$pwd
+                     , Database = conn_args$database
+                     , Server = conn_args$server
+                     , Port   = conn_args$port)
+  }
   
   df <- dbGetQuery(con, statementSQL)
   kill_db_connections(con)

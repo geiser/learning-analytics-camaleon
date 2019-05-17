@@ -1,6 +1,6 @@
-wants <- c('plotly','ggplot2','shinyWidgets','shinythemes','shiny','plyr','dplyr','readr','reshape','RMySQL')
-has <- wants %in% rownames(installed.packages())
-if (any(!has)) install.packages(wants[!has])
+#wants <- c('plotly','ggplot2','shinyWidgets','shinythemes','shiny','plyr','dplyr','readr','reshape','RMySQL')
+#has <- wants %in% rownames(installed.packages())
+#if (any(!has)) install.packages(wants[!has])
 
 # Load packages
 library(shiny)
