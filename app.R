@@ -294,7 +294,9 @@ server <- function(input, output) {
     
     sd <- get_data(input$mainNavigation, filters = filters, options = options)
     if (any(colnames(sd$df) %in% c('Date')) & nrow(sd$df) > 0) {
-      sd$df$Date <- as.POSIXct(sd$df$Date, origin='1970-01-01', tz ="America/Maceio") 
+      df <- sd$df[order(sd$df$Date),]  
+      df$Date <- as.POSIXct(df$Date, origin='1970-01-01', tz ="America/Maceio") 
+      sd$df <- df
     }
     sd
   })
