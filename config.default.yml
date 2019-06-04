@@ -1,0 +1,18 @@
+
+default:
+  dataconnection:
+    driver: 'MySQL'
+    server: 'localhost'
+    uid: 'root'
+    pwd: 'qaz123456'
+    port: 3306
+    database: 'production'
+    
+development:
+  dataconnection:
+    driver: 'MySQL'
+    server: 'localhost'
+    uid: 'root'
+    pwd: 'qaz123456'
+    port: 3306
+    database: 'production'
