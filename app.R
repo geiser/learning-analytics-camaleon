@@ -1,6 +1,6 @@
-#wants <- c('plotly','ggplot2','shinyWidgets','shinythemes','shiny','plyr','dplyr','readr','reshape','RMySQL')
-#has <- wants %in% rownames(installed.packages())
-#if (any(!has)) install.packages(wants[!has])
+wants <- c('plotly','ggplot2','shinyWidgets','shinythemes','shiny','plyr','dplyr','readr','reshape','RMySQL')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
 
 # Load packages
 library(shiny)
@@ -76,7 +76,7 @@ ui <- fluidPage(
         )
         , tabPanel(
           "Desempenho:Séries Temporais"
-          , value = "learning-performance:temporal-series"
+          , value = "learning-performance-temporal-series"
           , verticalLayout(
             h3("Séries Temporais de Desempenho")
             , fillRow(
@@ -98,7 +98,7 @@ ui <- fluidPage(
         )
         , tabPanel(
           "Engajamento:Séries Temporais"
-          , value = "learning-engagement:temporal-series"
+          , value = "learning-engagement-temporal-series"
           , verticalLayout(
             h3("Séries Temporais de Engajamento")
             , fillRow(

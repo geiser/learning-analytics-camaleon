@@ -62,10 +62,10 @@ get_data <- function(dtype, filters = list(), options = list(), sql.params = def
   df <- data.frame()
   display_col <- c()
   
-  if ((dtype == 'learning-performance') | (dtype == 'learning-performance:temporal-series')) {
+  if ((dtype == 'learning-performance') | (dtype == 'learning-performance-temporal-series')) {
     
     tserie <- F; startDate = 0; endDate <- 0;
-    if (dtype == 'learning-performance:temporal-series') {
+    if (dtype == 'learning-performance-temporal-series') {
       tserie <- T
       endDate <- filters[["endDate"]]
       startDate <- filters[["startDate"]]
