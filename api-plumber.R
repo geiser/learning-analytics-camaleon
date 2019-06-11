@@ -40,7 +40,7 @@ get_rest_data <- function(dtype, filters = list(), options = list(), full.info =
   if (!is.null(options[["typeLearningEngagement"]])) {
     options[["typeLearningEngagementTemporalSerie"]] <- options[["typeLearningEngagement"]]
   }
-  if (!is.null(options[["typeLearningEngagement"]])) {
+  if (!is.null(options[["formulaLearningEngagement"]])) {
     options[["formulaLearningEngagementTemporalSerie"]] <- options[["formulaLearningEngagement"]]
   }
   
@@ -112,15 +112,12 @@ function(dtype, ctype, filters = list(), options = list()) {
   } else if (dtype == 'learning-performance-temporal-series') {
     
     title_ <- "Série Temporal"
-    if (options[["formulaLearningEngagement"]] == "tm") {
-      title_ <- paste(title_,":","Tempo Médio")
-    } else if (options[["formulaLearningEngagement"]] == "ta") {
-      title_ <- paste(title_,":","Tempo Acumulado")
-    }
-    if (options[["formulaLearningEngagement"]] != "te") {
-      title_ <- paste("ERROR: Only 'tempo efetivo' AVAILABLE")
-    } else {
-      title_ <- paste(title_, "Efetivo")
+    if (options[["typeLearningPerformance"]] == "pmc") {
+      title_ <- paste(title_,":","Percentual Médio de Completude")
+    } else if (options[["typeLearningPerformance"]] == "pma") {
+      title_ <- paste(title_,":","Percentual Médio de Acerto")
+    } else if (options[["typeLearningPerformance"]] == "pme") {
+      title_ <- paste(title_,":","Percentual Médio de Erro")
     }
     
     if (ctype == 'tserie') {
@@ -138,16 +135,20 @@ function(dtype, ctype, filters = list(), options = list()) {
     }
     
   } else if (dtype == 'learning-engagement-temporal-series') {
+    
     title_ <- "Série Temporal"
-    if (input$formulaLearningEngagementTemporalSerie == "tm") {
+    if (options[["formulaLearningEngagement"]] == "tm") {
       title_ <- paste(title_,":","Tempo Médio")
-    } else if (input$formulaLearningEngagementTemporalSerie == "ta") {
+    } else if (options[["formulaLearningEngagement"]] == "ta") {
       title_ <- paste(title_,":","Tempo Acumulado")
     }
-    if (input$typeLearningEngagementTemporalSerie != "te") {
-      title_ <- paste("ERROR: Only tempo efetivo AVAILABLE")
-    } else {
-      title_ <- paste(title_, "Efetivo")
+    
+    if (options[["typeLearningEngagement"]] == "te") {
+      title_ <- paste(title_,":","Tempo Efetivo")
+    } else if (options[["typeLearningEngagement"]] == "ti") {
+      title_ <- paste(title_, "Tempo Interacao")
+    } else if (options[["typeLearningEngagement"]] == "to") {
+      title_ <- paste(title_, "Tempo de Observacao")
     }
     
     if (ctype == 'tserie') {
