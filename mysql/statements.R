@@ -95,7 +95,7 @@ get_completenessSQL <- function(fuser, fcontent, filters, tdate = 'daily', tseri
     , as.select.sql.clause(fcontent), ","
     , ifelse(tserie
              , ifelse(tdate == 'monthly'
-                      , "UNIX_TIMESTAMP(DATE_FORMAT(lg.interactionTime,'%Y-%m-01')) AS `Date_`,"
+                      , "UNIX_TIMESTAMP(DATE_FORMAT(lg.interactionTime,'%Y-%m-15')) AS `Date_`,"
                       , "UNIX_TIMESTAMP(DATE_FORMAT(lg.interactionTime,'%Y-%m-%d')) AS `Date_`,")
              , '')
     , as_rate, "AS `Pct`"
