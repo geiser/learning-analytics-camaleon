@@ -3,6 +3,15 @@ source('mysql/common.R')
 source('mysql/statements.R')
 source('mysql/making-queries.R')
 
+# get default parameters for SQL queries
+default.time.params <- function() {
+  return(list(
+    origin='1970-01-01'
+    , format = "%Y-%m-%d"
+    , format.by.month = "%Y-%m-15"
+    , tz ="America/Maceio"
+  ))
+}
 
 #* @filter cors
 cors <- function(res) {
@@ -21,7 +30,6 @@ cors <- function(res) {
 function(key, filters = list()) {
   get_choices(key, filters)  
 }
-
 
 #* Return a JSON object with the learning-analytic data. E.g. curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://127.0.0.1:8000/learning-analytics/v0.09/learning-performance" -H  "accept: application/json"
 #* @param dtype:character The data type to be obtained from the learning analytics API. The current possible types are 'learning-performance', 'learning-performance-temporal-series', and 'learning-engagement-temporal-series'.
@@ -47,13 +55,31 @@ get_rest_data <- function(dtype, filters = list(), options = list(), full.info =
   sd <- get_data(dtype, filters = filters, options = options)
   df <- sd$df
   if (any(colnames(df) %in% c('Date')) & nrow(df) > 0) {
-    df <- df[order(df$Date),]  
-    df$Date <- as.POSIXct(df$Date, origin='1970-01-01', tz ="America/Maceio")
+    tparams <- default.time.params()
+    df <- df[order(df$Date),]
+    df$Date <- as.Date(df$Date, origin=tparams$origin, tz=tparams$tz)
   }
   sd$df <- df
   if (full.info) return(sd) else return(sd$df)
 }
 
+
+tserie.as.filled.df <- function(dates, values, startDate, endDate, typeDate = 'daily', tparams = default.time.params()) {
+ startDate <- as.Date(startDate, origin = tparams$origin, tz = tparams$tz)
+ endDate <- as.Date(endDate, origin = tparams$origin, tz = tparams$tz)
+ tdates <- seq(from=startDate, to=endDate, by='day')
+ 
+ if (typeDate == "monthly") {
+   tdates <- seq(from=as.Date(format(startDate, tparams$format.by.month))
+                 , to=as.Date(format(endDate, tparams$format.by.month)), by='month')
+ }
+ 
+ df <- data.frame(
+   x=c(dates, setdiff(tdates, dates)),
+   y=c(values, rep(0, length(x)-length(values)))
+ )
+ return(df[order(df$x),])
+}
 
 #* Return a JSON object according to the specification "https://help.plot.ly/json-chart-schema/" for the learning-analytic data. E.g. curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://127.0.0.1:8000/learning-analytics/v0.09/learning-performance/as.plotly/radar" -H "accept: application/json"
 #* @param dtype:character The data type to be obtained from the learning analytic. The current possible types are 'learning-performance', 'learning-performance-temporal-series', and 'learning-engagement-temporal-series'.
@@ -124,10 +150,14 @@ function(dtype, ctype, filters = list(), options = list()) {
       p <- plot_ly(type='scatter', mode='lines+markers')
       for (cat_name in unique(sd$df$Category)) {
         idx <- (sd$df$Category == cat_name);
+        ts_df <- tserie.as.filled.df(
+          sd$df$Date[idx], sd$df$Time[idx]
+          , filters[["startDate"]], filters[["endDate"]]
+          , typeDate = options$typeDate)
         p <- add_trace(
           p
-          , x = sd$df$Date[idx]
-          , y = sd$df$Time[idx]
+          , x = ts_df$x
+          , y = ts_df$y
           , name = cat_name)
       }
       p <- layout(p, legend=list(orientation = 'h'), title=title_)
@@ -155,10 +185,14 @@ function(dtype, ctype, filters = list(), options = list()) {
       p <- plot_ly(type='scatter', mode='lines+markers')
       for (cat_name in unique(sd$df$Category)) {
         idx <- (sd$df$Category == cat_name);
+        ts_df <- tserie.as.filled.df(
+          sd$df$Date[idx], sd$df$Time[idx]
+          , filters[["startDate"]], filters[["endDate"]]
+          , typeDate = options$typeDate)
         p <- add_trace(
           p
-          , x = sd$df$Date[idx]
-          , y = sd$df$Time[idx]
+          , x = ts_df$x
+          , y = ts_df$y
           , name = cat_name
         )
       } 

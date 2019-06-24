@@ -126,6 +126,7 @@ get_data <- function(dtype, filters = list(), options = list(), sql.params = def
       colnames(df)[colnames(df)=="cid"] <- cid
       colnames(df)[colnames(df)=="cname"] <- cname
       display_col <- c(uname,cname,"Pct")
+      fvalue <- "Pct"
       if (tserie) display_col <- c(uname,cname,"Date","Pct")
     }
   } else { ## engagements
@@ -153,11 +154,12 @@ get_data <- function(dtype, filters = list(), options = list(), sql.params = def
       colnames(df)[colnames(df)=="cid"] <- cid
       colnames(df)[colnames(df)=="cname"] <- cname
       
+      fvalue <- "Time"
       display_col <- c(uname,cname,"Category","Date","Time")
     }
     
   }
   
   return(list(fuser=list(id=uid,name=uname), fcontent=list(id=cid,name=cname)
-              , df=df, SQL=statementSQL, display_col=display_col))
+              , fvalue=fvalue, df=df, SQL=statementSQL, display_col=display_col))
 }
