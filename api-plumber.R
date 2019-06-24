@@ -9,7 +9,7 @@ default.time.params <- function() {
     origin='1970-01-01'
     , format = "%Y-%m-%d"
     , format.by.month = "%Y-%m-15"
-    , tz ="America/Maceio"
+    , tz ="UTC"
   ))
 }
 

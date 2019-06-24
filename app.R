@@ -280,8 +280,8 @@ server <- function(input, output) {
       if (length(input$topic) > 0) {
         if (input$moreContentCheckbox) filters[["resource"]] <- input$resource
       }
-      filters[["endDate"]] <- as.numeric(as.POSIXct(input$dateInput[2]), format = "dd-mm-yyyy")
-      filters[["startDate"]] <- as.numeric(as.POSIXct(input$dateInput[1]), format = "dd-mm-yyyy")
+      filters[["endDate"]] <- as.numeric(as.Date(input$dateInput[2]), format = "dd-mm-yyyy")
+      filters[["startDate"]] <- as.numeric(as.Date(input$dateInput[1]), format = "dd-mm-yyyy")
     }
     
     options <- list(
