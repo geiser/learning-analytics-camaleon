@@ -8,7 +8,7 @@ Learning analytics for Camaleon
 ## REST API
 
 
-### get_choices
+### get_rest_choices
 
 | Item | Detail |
 |--------|----------|

@@ -51,6 +51,18 @@ get_query.params <- function(dtype, filters, options, sql.params = default.sql.p
 
 # function to get query and making data from MySQL DB
 get_data <- function(dtype, filters = list(), options = list(), sql.params = default.sql.params()) {
+  
+  # TODO: remake this part to unify keys using in the apps
+  if (!is.null(options[["typeLearningPerformance"]])) { 
+    options[["typeLearningPerformanceTemporalSerie"]] <- options[["typeLearningPerformance"]]
+  }
+  if (!is.null(options[["typeLearningEngagement"]])) {
+    options[["typeLearningEngagementTemporalSerie"]] <- options[["typeLearningEngagement"]]
+  }
+  if (!is.null(options[["formulaLearningEngagement"]])) {
+    options[["formulaLearningEngagementTemporalSerie"]] <- options[["formulaLearningEngagement"]]
+  }
+  
   statementSQL <- "Click update button to obtain data from DB ..."
 
   query.params <- get_query.params(dtype, filters, options)
@@ -59,8 +71,10 @@ get_data <- function(dtype, filters = list(), options = list(), sql.params = def
   uid <- sql.params[[fuser]]$id; cid <- sql.params[[fcontent]]$id;
   uname <- sql.params[[fuser]]$name; cname <- sql.params[[fcontent]]$name;
   
+  fvalue <- NULL
   df <- data.frame()
   display_col <- c()
+  
   
   if ((dtype == 'learning-performance') | (dtype == 'learning-performance-temporal-series')) {
     
@@ -133,8 +147,8 @@ get_data <- function(dtype, filters = list(), options = list(), sql.params = def
     endDate <- filters[["endDate"]]
     startDate <- filters[["startDate"]]
     statementSQL <- get_engagementSQL(fuser, fcontent, query.params$filters
-                                        , tserie = T, tdate = options$typeDate
-                                        , startDate = startDate, endDate = endDate)
+                                      , tserie = T, tdate = options$typeDate
+                                      , startDate = startDate, endDate = endDate)
     
     df <- sql.as.df(statementSQL, encoding_fields = c(uname, cname))
     if (nrow(df) > 0) {
@@ -161,5 +175,5 @@ get_data <- function(dtype, filters = list(), options = list(), sql.params = def
   }
   
   return(list(fuser=list(id=uid,name=uname), fcontent=list(id=cid,name=cname)
-              , fvalue=fvalue, df=df, SQL=statementSQL, display_col=display_col))
+          , fvalue=fvalue, df=df, SQL=statementSQL, display_col=display_col))
 }

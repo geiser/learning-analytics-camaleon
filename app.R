@@ -1,7 +1,3 @@
-wants <- c('plotly','ggplot2','shinyWidgets','shinythemes','shiny','plyr','dplyr','readr','reshape','RMySQL')
-has <- wants %in% rownames(installed.packages())
-if (any(!has)) install.packages(wants[!has])
-
 # Load packages
 library(shiny)
 library(shinythemes)
@@ -12,16 +8,12 @@ library(reshape)
 library(plotly)
 library(foreign)
 
-library(shiny)
-
 # remove the following line for production environment
 # NOTE: when it is remove the default data connection is used
 Sys.setenv(R_CONFIG_ACTIVE = "development") 
 
 source('ui-extension.R')
-source('mysql/common.R')
-source('mysql/statements.R')
-source('mysql/making-queries.R')
+source('common.R')
 
 ui <- fluidPage(
   theme = shinytheme("lumen")
@@ -251,7 +243,7 @@ server <- function(input, output) {
       dateRangeInput("dateInput"
                      , strong("Date range")
                      , format = "dd-mm-yyyy"
-                     , start = "2017-01-01"
+                     , start = "2018-04-01"
                      , end = format(Sys.Date(),"%Y-%m-%d")
                      , max = format(Sys.Date(),"%Y-%m-%d")
                      , language = "pt-BR")
@@ -259,15 +251,15 @@ server <- function(input, output) {
       dateRangeMonthsInput("dateInput"
                            , strong("Date range")
                            , format = "dd-mm-yyyy"
-                           , start = "2017-01-01"
+                           , start = "2018-04-01"
                            , end = format(Sys.Date(),"%Y-%m-%d")
                            , max = format(Sys.Date(),"%Y-%m-%d")
                            , language = "pt-BR")
     }
   })
   
-  # updating selected data
-  selected_data <- eventReactive(input$updateDataGraphButton, {
+  # get params for the application
+  app_params <- eventReactive(input$updateDataGraphButton, {
     filters <- list(school = input$school, domain = input$domain)
     
     if (length(input$domain) > 0) filters[["curriculum"]] <- input$curriculum
@@ -280,169 +272,95 @@ server <- function(input, output) {
       if (length(input$topic) > 0) {
         if (input$moreContentCheckbox) filters[["resource"]] <- input$resource
       }
-      filters[["endDate"]] <- as.numeric(as.Date(input$dateInput[2]), format = "dd-mm-yyyy")
-      filters[["startDate"]] <- as.numeric(as.Date(input$dateInput[1]), format = "dd-mm-yyyy")
+      filters[["endDate"]] <- tryCatch(
+        as.numeric(as.POSIXct(input$dateInput[2]), format = "dd-mm-yyyy")
+        , error = function(e) { as.numeric(as.POSIXct(Sys.Date())) })
+      filters[["startDate"]] <- tryCatch(
+        as.numeric(as.POSIXct(input$dateInput[1]), format = "dd-mm-yyyy")
+        , error = function(e) { as.numeric(as.POSIXct(Sys.Date())) })
     }
     
     options <- list(
       typeDate = input$typeDateInput
-      , typeLearningPerformance = input$typeLearningPerformance
-      , typeLearningPerformanceTemporalSerie = input$typeLearningPerformanceTemporalSerie
-      , typeLearningEngagementTemporalSerie = input$typeLearningEngagementTemporalSerie
-      , formulaLearningEngagementTemporalSerie = input$formulaLearningEngagementTemporalSerie
+      , typeLearningPerformance = ifelse(
+          input$mainNavigation == "learning-performance"
+          , input$typeLearningPerformance
+          , input$typeLearningPerformanceTemporalSerie)
+      , typeLearningEngagement = input$typeLearningEngagementTemporalSerie
+      , formulaLearningEngagement = input$formulaLearningEngagementTemporalSerie
     )
     
-    sd <- get_data(input$mainNavigation, filters = filters, options = options)
-    if (any(colnames(sd$df) %in% c('Date')) & nrow(sd$df) > 0) {
-      df <- sd$df[order(sd$df$Date),]  
-      df$Date <- as.POSIXct(df$Date, origin='1970-01-01', tz ="America/Maceio") 
-      sd$df <- df
-    }
-    sd
+    list(dtype = input$mainNavigation, filters = filters, options = options)
   })
   
   # rendering UI for learning performance
   output$learningPerformanceRadarChart <- renderPlotly({
-    
-    title_ <- ""
-    if (input$typeLearningPerformance == "pmc") {
-      title_ <- "Percentual Médio de Completude"
-    } else if (input$typeLearningPerformance == "pma") {
-      title_ <- "Percentual Médio de Acerto"
-    } else if (input$typeLearningPerformance == "pme") {
-      title_ <- "Percentual Médio de Erro"
-    }
-    
-    
-    sd <- selected_data(); df <- sd$df;
-    p <- plot_ly(type = 'scatterpolar', fill = 'toself')
-    for (u_name in input[[tolower(sd$fuser$name)]]) {
-      u_idx <- (df[[sd$fuser$id]] == u_name);
-      p <- add_trace(
-        p
-        , r = df$Pct[u_idx]
-        , theta = df[[sd$fcontent$name]][u_idx]
-        , name = head(df[[sd$fuser$name]][u_idx], 1)
-      )
-    }
-    p <- layout(p, legend=list(orientation = 'h'), title=title_)
+    ctype <- 'radar'
+    params <- app_params()
+    get_plotly(params$dtype, ctype, params$filters, params$options)
   })
   
   output$learningPerformanceDotChart <- renderPlotly({
-    
-    title_ <- ""
-    if (input$typeLearningPerformance == "pmc") {
-      title_ <- "Percentual Médio de Completude"
-    } else if (input$typeLearningPerformance == "pma") {
-      title_ <- "Percentual Médio de Acerto"
-    } else if (input$typeLearningPerformance == "pme") {
-      title_ <- "Percentual Médio de Erro"
-    }
-    
-    sd <- selected_data(); df <- sd$df;
-    p <- plot_ly(type = 'scatter', mode = "markers")
-    for (u_name in input[[tolower(sd$fuser$name)]]) {
-      u_idx <- (df[[sd$fuser$id]] == u_name);
-      x <- df$Pct[u_idx]
-      y <- df[[sd$fcontent$name]][u_idx]
-      p <- add_trace(p, x = x, y = y
-                     , name = head(df[[sd$fuser$name]][u_idx],1)
-                     , type = 'scatter', mode = "markers"
-      )
-    }
-    p <- layout(p, legend=list(orientation = 'h'), title=title_)
+    ctype <- 'dot'
+    params <- app_params()
+    get_plotly(params$dtype, ctype, params$filters, params$options)
   })
   
   output$learningPerformanceTable <- renderDataTable({
-    selected_data()$df[selected_data()$display_col]
+    params <- app_params()
+    get_data.as.df(params$dtype, params$filters, params$options)
   })
   
-  output$learningPerformanceSQL <- renderText({ selected_data()$SQL })
+  output$learningPerformanceSQL <- renderText({
+    params <- app_params()
+    get_data(params$dtype, params$filters, params$options)$SQL
+  })
   
   # rendering UI plots for learning engagement
   output$learningEngagementTemporalSerieLineChart <- renderPlotly({
-    
-    title_ <- "Série Temporal"
-    if (input$formulaLearningEngagementTemporalSerie == "tm") {
-      title_ <- paste(title_,":","Tempo Médio")
-    } else if (input$formulaLearningEngagementTemporalSerie == "ta") {
-      title_ <- paste(title_,":","Tempo Acumulado")
-    }
-    if (input$typeLearningEngagementTemporalSerie != "te") {
-      title_ <- paste("ERROR: Only tempo efetivo AVAILABLE")
-    } else {
-      title_ <- paste(title_, "Efetivo")
-    }
-    
-    sd <- selected_data(); df <- sd$df;
-    p <- plot_ly(type='scatter', mode='lines+markers')
-    withProgress(
-      message = "Calculation in progress"
-      , detail = "This may take a while ..."
-      , {
-        for (cat_name in unique(df$Category)) {
-          idx <- (df$Category == cat_name);
-          p <- add_trace(
-            p
-            , x = df$Date[idx]
-            , y = df$Time[idx]
-            , name = cat_name
-          )
-          incProgress(1/length(unique(df$Category)))
-        }
-      })
-    p <- layout(p, legend=list(orientation = 'h'), title=title_)
+    ctype <- 'tserie'
+    params <- app_params()
+    get_plotly(params$dtype, ctype, params$filters, params$options)
   })
   
   output$learningEngagementTemporalSerieTable <- renderDataTable({
-    selected_data()$df[selected_data()$display_col]
+    params <- app_params()
+    get_data.as.df(params$dtype, params$filters, params$options)
   })
   
-  output$learningEngagementTemporalSerieSQL <- renderText({ selected_data()$SQL })
+  output$learningEngagementTemporalSerieSQL <- renderText({
+    params <- app_params()
+    get_data(params$dtype, params$filters, params$options)$SQL
+  })
   
   # rendering UI plots for learning performance
   output$learningPerformanceTemporalSerieLineChart <- renderPlotly({
-    
-    title_ <- "Série Temporal"
-    if (input$typeLearningPerformanceTemporalSerie == "pmc") {
-      title_ <- paste(title_,":","Percentual Médio de Completude")
-    } else if (input$typeLearningPerformanceTemporalSerie == "pma") {
-      title_ <- paste(title_,":","Percentual Médio de Acerto")
-    } else if (input$typeLearningPerformanceTemporalSerie == "pme") {
-      title_ <- paste(title_,":","Percentual Médio de Erro")
-    }
-    
-    sd <- selected_data(); df <- sd$df;
-    p <- plot_ly(type='scatter', mode='lines+markers')
-    for (cat_name in unique(df$Category)) {
-      idx <- (df$Category == cat_name);
-      p <- add_trace(
-        p
-        , x = df$Date[idx]
-        , y = df$Pct[idx]
-        , name = cat_name
-      )
-    }
-    p <- layout(p, legend=list(orientation = 'h'), title=title_)
+    ctype <- 'tserie'
+    params <- app_params()
+    get_plotly(params$dtype, ctype, params$filters, params$options)
   })
   
   output$learningPerformanceTemporalSerieTable <- renderDataTable({
-    selected_data()$df[selected_data()$display_col]
+    params <- app_params()
+    get_data.as.df(params$dtype, params$filters, params$options)
   })
   
-  output$learningPerformanceTemporalSerieSQL <- renderText({ selected_data()$SQL })
+  output$learningPerformanceTemporalSerieSQL <- renderText({
+    params <- app_params()
+    get_data(params$dtype, params$filters, params$options)$SQL
+  })
   
   # setting other UI events: download, 
   output$downloadCSVButton <- downloadHandler(
     filename = paste0(input$mainNavigation,"-data.csv")
     , content = function(file) {
-      sd <- selected_data(); df <- sd$df
-      write.csv(df[sd$display_col], file, row.names = F)
+      params <- app_params()
+      df <- get_data.as.df(params$dtype, params$filters, params$options)
+      write.csv(df, file, row.names = F)
     }
   )
   
 }
-
 
 # Run the application 
 shinyApp(ui = ui, server = server)
