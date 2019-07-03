@@ -1,16 +1,16 @@
 # Load packages
 library(shiny)
 library(shinythemes)
-library(dplyr)
-library(readr)
-library(readxl)
-library(reshape)
+#library(dplyr)
+#library(readr)
+#library(readxl)
+#library(reshape)
 library(plotly)
-library(foreign)
+#library(foreign)
 
 # remove the following line for production environment
 # NOTE: when it is remove the default data connection is used
-Sys.setenv(R_CONFIG_ACTIVE = "development") 
+# Sys.setenv(R_CONFIG_ACTIVE = "development") 
 
 source('ui-extension.R')
 source('common.R')

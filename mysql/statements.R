@@ -59,7 +59,7 @@ get_contentSegmentSQL <- function(key, filters = list(), in_where = '') {
 
 # function to get percentagem (Pct) of completeness in SQL statement
 get_completenessSQL <- function(fuser, fcontent, filters, tdate = 'daily', tserie = T
-                                , in_where = ''
+                                , in_where = '', in_from = ''
                                 , endDate = as.numeric(Sys.time())
                                 , startDate = as.numeric(Sys.time())-31556926
                                 , sql.params = default.sql.params()) {

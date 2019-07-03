@@ -1,26 +1,19 @@
 ## ================================= ##
 ## Functions to making MySQL Queries ##
 ## ================================= ##
-
-wants <- c('DBI','odbc','RMySQL','config', 'qdap', 'dplyr')
-has <- wants %in% rownames(installed.packages())
-if (any(!has)) install.packages(wants[!has])
-
 library(DBI)
-library(qdap)
-library(odbc)
 library(dplyr)
 
 # function to kill db connection
 kill_db_connections <- function (con = NULL) {
   if (!is.null(con)) dbDisconnect(con)
-  if (Sys.getenv("R_CONFIG_ACTIVE") == "development") {
-    all_connections <- dbListConnections(RMySQL::MySQL())
-    if (length(all_connections) > 10) {
-      for(con in all_connections) { dbDisconnect(con) }
-      print(paste(length(all_connections), " connections killed."))
-    }
+  
+  all_connections <- dbListConnections(RMySQL::MySQL())
+  if (length(all_connections) > 10) {
+    for(con in all_connections) { dbDisconnect(con) }
+    print(paste(length(all_connections), " connections killed."))
   }
+  
 }
 
 # functions to get a data.frame from MySQL query
@@ -29,20 +22,11 @@ sql.as.df <- function(statementSQL, encoding_fields = c()
   kill_db_connections()
   conn_args <- config::get("dataconnection")
   
-  if (Sys.getenv("R_CONFIG_ACTIVE") == "development") {
-    con <- dbConnect(RMySQL::MySQL()
-                     , user = conn_args$uid
-                     , password = conn_args$pwd
-                     , dbname = conn_args$database
-                     , host = conn_args$server)
-  } else {
-    con <- dbConnect(odbc::odbc(), Driver = conn_args$driver
-                     , UID    = conn_args$uid
-                     , PWD    = conn_args$pwd
-                     , Database = conn_args$database
-                     , Server = conn_args$server
-                     , Port   = conn_args$port)
-  }
+  con <- dbConnect(RMySQL::MySQL()
+                   , user = conn_args$uid
+                   , password = conn_args$pwd
+                   , dbname = conn_args$database
+                   , host = conn_args$server)
   
   df <- dbGetQuery(con, statementSQL)
   kill_db_connections(con)
