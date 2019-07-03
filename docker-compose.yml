@@ -1,0 +1,20 @@
+version: '3'
+services:
+  plumber:
+    # will build ./docker/plumber
+    build: ./docker/plumber
+    ports:
+     - "8080:8080"
+    volumes:
+     - .:/app
+  shiny:
+    # will build ./docker/shiny
+    build: ./docker/shiny
+    ports:
+      - "3838:3838"
+    volumes:
+      - 'shiny_logs:/var/log/shiny-server'
+      - '.:/srv/shiny-server'
+
+volumes:
+  shiny_logs:
