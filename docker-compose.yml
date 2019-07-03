@@ -3,6 +3,7 @@ services:
   plumber:
     # will build ./docker/plumber
     build: ./docker/plumber
+    image: geiser/learning-analytics-camaleon_plumber
     ports:
      - "8080:8080"
     volumes:
@@ -10,6 +11,7 @@ services:
   shiny:
     # will build ./docker/shiny
     build: ./docker/shiny
+    image: geiser/learning-analytics-camaleon_shiny
     ports:
       - "3838:3838"
     volumes:

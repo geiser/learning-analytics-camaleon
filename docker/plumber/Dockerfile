@@ -1,4 +1,5 @@
 FROM trestletech/plumber
+LABEL maintainer="geiser@usp.br"
 MAINTAINER geiser <geiser@usp.br>
 
 RUN apt-get update -qq && apt-get -y --no-install-recommends install \
