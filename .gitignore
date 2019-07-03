@@ -1,6 +1,8 @@
+shiny_logs/*
+config.yml
 .DS_Store
+.DS_Store?
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-config.yml
