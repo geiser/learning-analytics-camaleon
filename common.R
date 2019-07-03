@@ -26,6 +26,12 @@ tserie.as.filled.df <- function(pdates, values, startDate, endDate, typeDate = '
   
   x <- c(pdates, setdiff(tdates, pdates))
   y <- c(values, rep(0, length(x)-length(values)))
+  y[is.na(y)] <- 0
+  y[is.nan(y)] <- 0
+  y[is.null(y)] <- 0
+  y[length(y) == 0] <- 0
+  y[is.character(y) && nchar(trim.space(y)) == 0] <- 0
+  
   df <- data.frame(x=x, y=y)
   return(df[order(df$x),])
 }
@@ -60,6 +66,7 @@ get_plotly <- function(dtype, ctype, filters = list(), options = list()) {
     sd$df <- df
   }
   
+
   p <- plot_ly(type='scatter', mode='lines+markers')
   # RadarChart, Dot Chart
   if (dtype == 'learning-performance') {
@@ -115,7 +122,7 @@ get_plotly <- function(dtype, ctype, filters = list(), options = list()) {
       for (cat_name in unique(sd$df$Category)) {
         idx <- (sd$df$Category == cat_name);
         ts_df <- tserie.as.filled.df(
-          sd$df$Date[idx], sd$df$Time[idx]
+          sd$df$Date[idx], sd$df$Pct[idx]
           , filters[["startDate"]], filters[["endDate"]]
           , typeDate = options$typeDate)
         p <- add_trace(
