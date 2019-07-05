@@ -9,11 +9,11 @@
 PWD ?= pwd_unknown
 
 # PROJECT_NAME defaults to name of the current directory.
-PROJECT_NAME = 'learning-analytics-camaleon'
+PROJECT_NAME = learning-analytics-camaleon
 
 # By default the plumber as service is the target.
 ifeq ($(service),)
-SERVICE_TARGET := 'plumber'
+SERVICE_TARGET := plumber
 else
 SERVICE_TARGET := $(service)
 endif
@@ -53,15 +53,15 @@ export HOST_UID
 # escaping (\) does work on most chars, except double quotes (if someone knows how, please let me know)
 # i.e. works on most cases. For everything else perhaps more useful to upload a script and execute that.
 shell:
-ifeq ($(CMD_ARGUMENTS),)
+	ifeq ($(CMD_ARGUMENTS),)
 	# no command is given, default to shell
-  docker-compose pull $(SERVICE_TARGET) 
+	docker-compose pull $(SERVICE_TARGET) \
 	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) run --rm $(SERVICE_TARGET) sh
-else
+	else
 	# run the command
-  docker-compose pull $(SERVICE_TARGET)
+	docker-compose pull $(SERVICE_TARGET) \
 	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) run --rm $(SERVICE_TARGET) sh -c "$(CMD_ARGUMENTS)"
-endif
+	endif
 
 # Regular Makefile part for buildpypi itself
 help:
@@ -89,17 +89,17 @@ rebuild:
 
 service:
 	# run as a (background) service
-  docker-compose pull $(SERVICE_TARGET)
+	docker-compose pull $(SERVICE_TARGET) \
 	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) up -d $(SERVICE_TARGET)
 
-login: service
+login: #service
 	# run as a service and attach to it
-	docker-compose pull $(SERVICE_TARGET)
-  && docker exec -it $(PROJECT_NAME)_$(HOST_UID) sh
+	docker-compose pull $(SERVICE_TARGET) \
+	&& docker exec -it $(PROJECT_NAME)_$(HOST_UID) sh
 
 build:
 	# only build the container. Note, docker does this also if you apply other targets.
-  docker-compose pull $(SERVICE_TARGET)
+	docker-compose pull $(SERVICE_TARGET) \
 	&& docker-compose build $(SERVICE_TARGET)
 
 clean:
@@ -114,7 +114,7 @@ prune:
 
 test:
 	# here it is useful to add your own customised tests
-  docker-compose pull $(SERVICE_TARGET)
+	docker-compose pull $(SERVICE_TARGET) \
 	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) run --rm $(SERVICE_TARGET) sh -c '\
 		echo "I am `whoami`. My uid is `id -u`." && echo "Docker runs!"' \
 	&& echo success
