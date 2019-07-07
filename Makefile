@@ -26,6 +26,10 @@ help: ## This help.
 
 .DEFAULT_GOAL := help
 
+config.yml:
+	@echo 'config.yml is necessary copying from config.default.yml'
+	cp config.default.yml config.yml
+
 pull: ## Pull the image from docker.io
 	docker-compose -p $(APP_NAME) pull $(service)
 
@@ -43,10 +47,10 @@ clean: ## Remove created images related to the project
 	|| echo 'Image(s) for "$(APP_NAME)" already removed.'
 
 # Build and run the container
-run: ## Run the service in the terminal
+run: config.yml ## Run the service in the terminal
 	docker-compose -p $(APP_NAME) run --rm --service-ports $(service)
 
-up: ## Spin up the service as container
+up: config.yml ## Spin up the service as container
 	docker-compose -p $(APP_NAME) up --no-build -d $(service)
 
 start: stop ## Start service as container
