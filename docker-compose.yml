@@ -1,17 +1,23 @@
-version: '3'
+version: '3.7'
 services:
   plumber:
-    build: ./docker/plumber
-    image: geiser/learning-analytics-camaleon_plumber:latest
+    build:
+      context: ./docker/plumber
+      target: ${VERSION}
+    image: ${TAG_NAME}:${VERSION}
+    container_name: ${APP_NAME}_${VERSION}
     ports:
      - "8080:8080"
     volumes:
      - .:/app
   shiny:
-    build: ./docker/shiny
-    image: geiser/learning-analytics-camaleon_shiny:latest
+    build:
+      context: ./docker/shiny
+      target: ${VERSION}
+    image: ${TAG_NAME}:${VERSION}
+    container_name: ${APP_NAME}_${VERSION}
     ports:
       - "3838:3838"
     volumes:
-      - '.:/srv/shiny-server'
+      - '.:/srv/shiny-server/${APP_NAME}'
       - './shiny_logs:/var/log/shiny-server'

@@ -1,120 +1,94 @@
-# --------------------------------------------------------------------
-# Author(s): Geiser Chalco <geiser@usp.br>
-#
-# Based on the script created by Anthony Potappel under the terms of the
-# MIT license with the Copyright (c) 2019 LINKIT, The Netherlands.
-# --------------------------------------------------------------------
-
-# If you see pwd_unknown showing up, this is why. Re-calibrate your system.
 PWD ?= pwd_unknown
+APP_NAME = $(notdir $(PWD))
+VERSION = prod
 
-# PROJECT_NAME defaults to name of the current directory.
-PROJECT_NAME = learning-analytics-camaleon
-
-# By default the plumber as service is the target.
-ifeq ($(service),)
-SERVICE_TARGET := plumber
-else
-SERVICE_TARGET := $(service)
+ifndef service
+$(error service variable is not set. Use `make service={service} target`)
 endif
 
-# if vars not set specifially: try default to environment, else fixed value.
-# strip to ensure spaces are removed in future editorial mistakes.
-# tested to work consistently on popular Linux flavors and Mac.
-ifeq ($(user),)
-# USER retrieved from env, UID from shell.
-HOST_USER ?= $(strip $(if $(USER),$(USER),nodummy))
-HOST_UID ?= $(strip $(if $(shell id -u),$(shell id -u),4000))
-else
-# allow override by adding user= and/ or uid=  (lowercase!).
-# uid= defaults to 0 if user= set (i.e. root).
-HOST_USER = $(user)
-HOST_UID = $(strip $(if $(uid),$(uid),0))
-endif
+# import config.
+cnf ?= config.env
+include $(cnf)
+export $(shell sed 's/=.*//' $(cnf))
+TAG_NAME=$(DOCKER_REPO)/$(APP_NAME)_$(service)
 
-THIS_FILE := $(lastword $(MAKEFILE_LIST))
-CMD_ARGUMENTS ?= $(cmd)
 
-# export such that its passed to shell functions for Docker to pick up.
-export PROJECT_NAME
-export HOST_USER
-export HOST_UID
+# pass variables for Docker to pick up.
+export APP_NAME
+export VERSION
+export TAG_NAME
 
-# all our targets are phony (no files to check).
-.PHONY: shell help build rebuild service login test clean prune
+# HELP: This will output the help for each task
+.PHONY: help
 
-# suppress makes own output
-#.SILENT:
+help: ## This help.
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# shell is the first target. So instead of: make shell cmd="whoami", we can type: make cmd="whoami".
-# more examples: make shell cmd="whoami && env", make shell cmd="echo hello container space".
-# leave the double quotes to prevent commands overflowing in makefile (things like && would break)
-# special chars: '',"",|,&&,||,*,^,[], should all work. Except "$" and "`", if someone knows how, please let me know!).
-# escaping (\) does work on most chars, except double quotes (if someone knows how, please let me know)
-# i.e. works on most cases. For everything else perhaps more useful to upload a script and execute that.
-shell:
-	ifeq ($(CMD_ARGUMENTS),)
-	# no command is given, default to shell
-	docker-compose pull $(SERVICE_TARGET) \
-	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) run --rm $(SERVICE_TARGET) sh
-	else
-	# run the command
-	docker-compose pull $(SERVICE_TARGET) \
-	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) run --rm $(SERVICE_TARGET) sh -c "$(CMD_ARGUMENTS)"
-	endif
+.DEFAULT_GOAL := help
 
-# Regular Makefile part for buildpypi itself
-help:
-	@echo ''
-	@echo 'Usage: make [TARGET] [EXTRA_ARGUMENTS]'
-	@echo 'Targets:'
-	@echo '  build    	build docker --image-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  rebuild  	rebuild docker --image-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  test     	test docker --container-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  service   	run as service --container-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  login   	run as service and login --container-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  clean    	remove docker --image-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo '  prune    	shortcut for docker system prune -af. Cleanup inactive containers and cache.'
-	@echo '  shell      run docker --container-- for current user: $(HOST_USER)(uid=$(HOST_UID))'
-	@echo ''
-	@echo 'Extra arguments:'
-	@echo 'cmd=:	make cmd="whoami"'
-	@echo '# user= and uid= allows to override current user. Might require additional privileges.'
-	@echo 'user=:	make shell user=root (no need to set uid=0)'
-	@echo 'uid=:	make shell user=dummy uid=4000 (defaults to 0 if user= set)'
+pull: ## Pull the image from docker.io
+	docker-compose -p $(APP_NAME) pull $(service)
 
-rebuild:
-	# force a rebuild by passing --no-cache
-	docker-compose build --no-cache $(SERVICE_TARGET)
+# Build the container
+build: ## Build the release and develoment container. The development
+	docker-compose -p $(APP_NAME) build --force-rm $(service)
 
-service:
-	# run as a (background) service
-	docker-compose pull $(SERVICE_TARGET) \
-	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) up -d $(SERVICE_TARGET)
 
-login: #service
-	# run as a service and attach to it
-	docker-compose pull $(SERVICE_TARGET) \
-	&& docker exec -it $(PROJECT_NAME)_$(HOST_UID) sh
+build-nc: ## Build the release and develoment container. The development
+	docker-compose -p $(APP_NAME) build --force-rm --no-cache $(service)
 
-build:
-	# only build the container. Note, docker does this also if you apply other targets.
-	docker-compose pull $(SERVICE_TARGET) \
-	&& docker-compose build $(SERVICE_TARGET)
+clean: ## Remove created images related to the project
+	@docker-compose -p $(APP_NAME) down --remove-orphans --rmi all 2>/dev/null \
+	&& echo 'Image(s) for "$(APP_NAME)" removed.' \
+	|| echo 'Image(s) for "$(APP_NAME)" already removed.'
 
-clean:
-	# remove created images
-	@docker-compose -p $(PROJECT_NAME)_$(HOST_UID) down --remove-orphans --rmi all 2>/dev/null \
-	&& echo 'Image(s) for "$(PROJECT_NAME):$(HOST_USER)" removed.' \
-	|| echo 'Image(s) for "$(PROJECT_NAME):$(HOST_USER)" already removed.'
+# Build and run the container
+run: ## Run the service in the terminal
+	docker-compose -p $(APP_NAME) run --rm --service-ports $(service)
 
-prune:
-	# clean all that is not actively used
+up: ## Spin up the service as container
+	docker-compose -p $(APP_NAME) up --no-build -d $(service)
+
+start: stop ## Start service as container
+	docker-compose -p $(APP_NAME) start $(service)
+
+stop: ## Stop running container
+	docker-compose -p $(APP_NAME) stop $(service)
+
+down: stop ## Stop and remove running containers
+	docker-compose -p $(APP_NAME) down
+
+# Docker release - build, tag and push the container
+release: build publish ## Make a release by building and publishing the `{version}` as `latest` tagged containers to the docker.io
+
+release-nc: build-nc publish ## Make a release by building the container without caching the image, and publishing the `{version}` as `latest` tagged containers in the docker.io
+
+# Docker publish
+publish: publish-latest publish-version ## Publish the `{version}` as `latest` tagged containers to docker.io
+
+publish-latest: tag-latest ## Publish the `latest` taged container to the docker.io
+	@echo 'publish latest to docker.io/$(TAG_NAME):latest'
+	docker push $(TAG_NAME):latest
+
+publish-version: tag-version ## Publish the `{version}` taged container to the docker.io
+	@echo 'publish $(VERSION) to docker.io/$(TAG_NAME):$(VERSION)'
+	docker push $(TAG_NAME):$(VERSION)
+
+# Docker tagging
+tag: tag-latest tag-version ## Generate container tags for the `{version}` ans `latest` tags
+
+tag-latest: ## Generate container `{version}` tag
+	@echo 'create tag latest'
+	docker tag $(TAG_NAME):$(VERSION) $(TAG_NAME):latest
+
+tag-version: ## Generate container `latest` tag
+	@echo 'create tag for version: $(VERSION)'
+	docker tag $(TAG_NAME):$(VERSION) $(TAG_NAME):$(VERSION)
+
+# HELPERS
+prune: ## clean all that is not actively used
 	docker system prune -af
 
-test:
-	# here it is useful to add your own customised tests
-	docker-compose pull $(SERVICE_TARGET) \
-	&& docker-compose -p $(PROJECT_NAME)_$(HOST_UID) run --rm $(SERVICE_TARGET) sh -c '\
-		echo "I am `whoami`. My uid is `id -u`." && echo "Docker runs!"' \
-	&& echo success
+version: ## output to version
+	@echo $(VERSION)
+

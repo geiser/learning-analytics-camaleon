@@ -1,21 +1,17 @@
-FROM rocker/shiny
-LABEL maintainer="geiser@usp.br"
-MAINTAINER geiser <geiser@usp.br>
+FROM geiser/r-shiny:v0.09 AS prod
+MAINTAINER Geiser Chalco <geiser@usp.br>
 
-RUN apt-get update -qq && apt-get -y --no-install-recommends install \
-	libxml2-dev \
-	libssl-dev \
-    libmariadbclient-dev
+LABEL org.label-schema.license="GPL-3.0" \
+      org.label-schema.vcs-url="https://github.com/geiser/docker" \
+      org.label-schema.vendor="Learning Analytics for Camaleon through R-shiny" \
+      maintainer="Geiser Chalco <geiser@usp.br>"
 
-RUN apt-get clean && apt-get autoclean && apt-get autoremove
+RUN apt-get update -qq && apt-get install -y \
+	libmariadbclient-dev \
+	&& apt-get clean && apt-get autoclean && apt-get autoremove \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Install R packages
-RUN install2.r DBI
-RUN install2.r RMySQL
-RUN install2.r config
+RUN install2.r DBI \
+	&& install2.r RMySQL
 
-RUN install2.r httr
-RUN install2.r plotly
-RUN install2.r qdap
-
-RUN install2.r shinythemes

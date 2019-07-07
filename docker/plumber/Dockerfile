@@ -1,19 +1,19 @@
-FROM trestletech/plumber
-LABEL maintainer="geiser@usp.br"
-MAINTAINER geiser <geiser@usp.br>
+FROM geiser/r-plumber:v0.09 AS prod
+MAINTAINER Geiser Chalco <geiser@usp.br>
 
-RUN apt-get update -qq && apt-get -y --no-install-recommends install \
-    libmariadbclient-dev
-RUN apt-get clean && apt-get autoclean && apt-get autoremove
+LABEL org.label-schema.license="GPL-3.0" \
+      org.label-schema.vcs-url="https://github.com/geiser/docker" \
+      org.label-schema.vendor="Learning Analytics for Camaleon through R-plumber" \
+      maintainer="Geiser Chalco <geiser@usp.br>"
+
+RUN apt-get update -qq && apt-get install -y \
+	libmariadbclient-dev \
+	&& apt-get clean && apt-get autoclean && apt-get autoremove \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Install R packages
-RUN install2.r DBI
-RUN install2.r RMySQL
-RUN install2.r config
-
-RUN install2.r plotly
-RUN install2.r rjson
-RUN install2.r qdap
+RUN install2.r DBI \
+	&& install2.r RMySQL
 
 # Making executable
 EXPOSE 8080
