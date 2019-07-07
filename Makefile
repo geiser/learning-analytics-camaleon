@@ -3,7 +3,7 @@ APP_NAME = $(notdir $(PWD))
 VERSION = prod
 
 ifndef service
-$(error service variable is not set. Use `make service={service} target`)
+service = plumber
 endif
 
 # import config.
