@@ -92,13 +92,9 @@ endif
 
 # Docker installing as systemd
 install: all  ## Install a service of the project as systemd
-ifndef service
-	$(error service variable is not set. Use 'make install service={service}')
-else
-	@mkdir -p /etc/docker/compose/$(APP_NAME)
-	@cp -v docker-compose.yml /etc/docker/compose/$(APP_NAME)
+	@mkdir -p $(PREFIX)
+	@cp -vR . $(PREFIX)
 	@cp -v docker-compose.service /etc/systemd/system/$(APP_NAME)@.service
-endif
 
 # HELPERS
 prune: ## clean all that is not actively used

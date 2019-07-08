@@ -1,5 +1,6 @@
 #!/bin/sh
-function parse_yaml {
+parse_yaml()
+{
    local prefix=$2
    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
    sed -ne "s|^\($s\):|\1|" \
@@ -33,7 +34,7 @@ for arg in "$@"; do
     --help)
         echo 'usage: ./configure [options]'
         echo 'options:'
-        echo '  --prefix=<path>: installation prefix'
+        echo '  --prefix=<path>: installation prefix where to install'
         echo '  --app=<name>: application name'
         echo '  --version=<version>: version to be compiled'
         echo 'all invalid options are silently ignored'
@@ -58,12 +59,12 @@ echo 'configuration complete, type make to build.'
 echo 'generating file docker-compose.service'
 echo "[Unit]" > docker-compose.service
 echo "Description=%i service of $app with docker-compose" >> docker-compose.service
-echo "Requires=docker.service" >> docker-compose.service
-echo "After=docker.service" >> docker-compose.service
+#echo "Requires=docker.service" >> docker-compose.service
+#echo "After=docker.service" >> docker-compose.service
 echo "" >> docker-compose.service
 echo "[Service]" >> docker-compose.service
 echo "Restart=always" >> docker-compose.service
-echo "WorkingDirectory=/etc/docker/$app" >> docker-compose.service
+echo "WorkingDirectory=$prefix" >> docker-compose.service
 echo "# Remove old containers, pull images and build containers" >> docker-compose.service
 echo "ExecStartPre=$(which docker-compose) -p $app down -v" >> docker-compose.service
 echo "ExecStartPre=$(which docker-compose) -p $app pull %i" >> docker-compose.service
