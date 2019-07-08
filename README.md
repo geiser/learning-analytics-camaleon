@@ -55,10 +55,9 @@ sudo systemctl start learning-analytics-camaleon@{service}
 sudo systemctl enable learning-analytics-camaleon@{service}
 sudo systemctl daemon-reload
 ```
-
-E.g.
+For the plumber service, use:
 ```
-sudo systemctl start learning-analytics-camaleon@shiny
+sudo systemctl start learning-analytics-camaleon@plumber
 sudo systemctl start learning-analytics-camaleon@plumber
 sudo systemctl daemon-reload
 ```
