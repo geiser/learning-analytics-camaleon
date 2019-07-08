@@ -1,0 +1,79 @@
+#!/bin/sh
+function parse_yaml {
+   local prefix=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s =  %s\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
+prefix=`pwd
+app=`basename $(pwd)`
+version=prod
+for arg in "$@"; do
+    case "$arg" in
+    --prefix=*)
+        prefix=`echo $arg | sed 's/--prefix=//'`
+        ;;
+    --app=*)
+        app=`echo $arg | sed 's/--app=//'`
+        ;;
+    --version=*)
+        version=`echo $arg | sed 's/--version=//'`
+        ;;
+    --help)
+        echo 'usage: ./configure [options]'
+        echo 'options:'
+        echo '  --prefix=<path>: installation prefix'
+        echo '  --app=<name>: application name'
+        echo '  --version=<version>: version to be compiled'
+        echo 'all invalid options are silently ignored'
+        exit 0
+        ;;
+    esac
+done
+
+echo 'generating makefile ...'
+parse_yaml docker-compose.yml > Makefile
+echo "" >> Makefile
+echo "PREFIX = $prefix" >> Makefile
+echo "APP_NAME = $app" >> Makefile
+echo "VERSION = $version" >> Makefile
+echo "" >> Makefile
+echo "DD = $(which docker)" >> Makefile
+echo "DC = $(which docker-compose)" >> Makefile
+echo "" >> Makefile
+cat Makefile.in >> Makefile
+echo 'configuration complete, type make to build.'
+
+echo 'generating file docker-compose.service'
+echo "[Unit]" > docker-compose.service
+echo "Description=%i service of $app with docker-compose" >> docker-compose.service
+echo "Requires=docker.service" >> docker-compose.service
+echo "After=docker.service" >> docker-compose.service
+echo "" >> docker-compose.service
+echo "[Service]" >> docker-compose.service
+echo "Restart=always" >> docker-compose.service
+echo "WorkingDirectory=/etc/docker/$app" >> docker-compose.service
+echo "# Remove old containers, pull images and build containers" >> docker-compose.service
+echo "ExecStartPre=$(which docker-compose) -p $app down -v" >> docker-compose.service
+echo "ExecStartPre=$(which docker-compose) -p $app pull %i" >> docker-compose.service
+echo "ExecStartPre=$(which docker-compose) -p $app build --force-rm %i" >> docker-compose.service
+echo "# Compose up" >> docker-compose.service
+echo "ExecStart=$(which docker-compose) -p $app up --no-build %i" >> docker-compose.service
+echo "# Compose down and restart" >> docker-compose.service
+echo "ExecStop=$(which docker-compose) -p $app down -v"  >> docker-compose.service
+echo "ExecReload=$(which docker-compose) -p $app restart %i"  >> docker-compose.service
+echo ""  >> docker-compose.service
+echo "[Install]" >> docker-compose.service
+echo "WantedBy=multi-user.target" >> docker-compose.service
+echo "" >> docker-compose.service
