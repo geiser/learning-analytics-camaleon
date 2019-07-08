@@ -8,7 +8,7 @@ services_shiny_build_target =  prod
 services_shiny_image =  geiser/learning-analytics-camaleon_shiny
 services_shiny_container_name =  learning-analytics-camaleon_shiny
 
-PREFIX = /usr/local
+PREFIX = /Users/gcc/learning-analytics-camaleon
 APP_NAME = learning-analytics-camaleon
 VERSION = prod
 
@@ -42,6 +42,8 @@ clean: ## Remove containers and images related to the project
 	@$(DC) -p $(APP_NAME) down --remove-orphans --rmi all 2>/dev/null \
 	&& echo 'Image(s) for "$(APP_NAME)" removed.' \
 	|| echo 'Image(s) for "$(APP_NAME)" already removed.'
+	@rm docker-compose.service
+	@rm Makefile
 
 run: config.yml ## Run a project service in the terminal
 ifndef service
@@ -110,8 +112,9 @@ install: all  ## Install a service of the project as systemd
 ifndef service
 	$(error service variable is not set. Use 'make install service={service}')
 else
-	@mkdir -p /etc/docker/compose/$(APP_NAME)/$(service)
-	@cp docker-compose.yml /etc/docker/compose/$(APP_NAME)/$(service)/
+	@mkdir -p /etc/docker/compose/$(APP_NAME)
+	@cp -v docker-compose.yml /etc/docker/compose/$(APP_NAME)
+	@cp -v docker-compose.service /etc/systemd/system/$(APP_NAME)@.service
 endif
 
 # HELPERS

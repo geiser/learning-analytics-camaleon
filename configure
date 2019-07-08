@@ -16,7 +16,7 @@ function parse_yaml {
    }'
 }
 
-prefix=`pwd
+prefix=`pwd`
 app=`basename $(pwd)`
 version=prod
 for arg in "$@"; do
