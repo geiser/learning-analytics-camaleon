@@ -93,7 +93,12 @@ endif
 # Docker installing as systemd
 install: all  ## Install a service of the project as systemd
 	@mkdir -p $(PREFIX)
-	@cp -vR . $(PREFIX)
+ifneq ($(shell pwd),$(PREFIX))
+	@cp -v *.R $(PREFIX)/
+	@cp -v *.yml $(PREFIX)/
+	@cp -vR mysql $(PREFIX)/
+	@mkdir -p $(PREFIX)/shiny_logs
+endif
 	@cp -v docker-compose.service /etc/systemd/system/$(APP_NAME)@.service
 
 # HELPERS
