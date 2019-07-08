@@ -1,9 +1,66 @@
 # learning-analytics-camaleon
 Learning analytics for Camaleon
-
 - Online demo in: http://geiser.tech:3838/learning-analytics-camaleon/
 - REST API: http://geiser.tech:8080/
 - Swagger documentation for the REST API in: http://geiser.tech:8080/__swagger__/
+
+## Install Procedure
+
+Requirements:
+- Docker (>= 18.06.0)
+- Docker Compose (>= 1.22.0)
+
+1. Procedure to install requirements in Ubuntu 18.04:
+```
+sudo apt-get purge docker docker-engine docker.io docker-ce
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable" 
+sudo apt-get update
+sudo apt-get install docker-ce
+```
+
+Setup the docker as service and run it at startup
+```
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+2. Download source code:
+```
+git clone https://github.com/geiser/learning-analytics-camaleon.git
+```
+
+3. Configure database in file `config.yml` (example is available in `config.default.yml`)
+
+4. Configure and build imagens to run the project as container
+```
+cd learning-analytics-camaleon
+./configure
+make
+```
+  * Use `make up` to spin up all the services of the project
+  * Use `make run service={service}` to run only one service {plumber, shiny} of the project. E.g. `make run service=shiny`
+  * Use `make help` to view more options
+
+5. Install the project as service using systemd
+```
+sudo make install
+```
+
+To start a service {plumber, shiny} of the project and to run at startup, You need to use the following codes:
+```
+sudo systemctl start learning-analytics-camaleon@{service}
+sudo systemctl enable learning-analytics-camaleon@{service}
+sudo systemctl daemon-reload
+```
+For the plumber service, use:
+```
+sudo systemctl start learning-analytics-camaleon@plumber
+sudo systemctl start learning-analytics-camaleon@plumber
+sudo systemctl daemon-reload
+```
 
 ## REST API
 
@@ -45,7 +102,7 @@ curl --data '{"key":"user", "filters":{"school": [171]}}' -X POST "http://geiser
 
 Examples:
 ```
-curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://geiser.tech:8080/learning-analytics/v0.09/learning-performance" -H  "accept: application/json" |
+curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://geiser.tech:8080/learning-analytics/v0.09/learning-performance" -H  "accept: application/json" 
 ```
 
 
