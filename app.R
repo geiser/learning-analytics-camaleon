@@ -1,15 +1,13 @@
 # Load packages
+wants <- c('shiny','shinythemes','DBI','RMySQL','config','plotly','rjson','qdap')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
+
 library(shiny)
 library(shinythemes)
-#library(dplyr)
-#library(readr)
-#library(readxl)
-#library(reshape)
 library(plotly)
-#library(foreign)
 
-# remove the following line for production environment
-# NOTE: when it is remove the default data connection is used
+# uncomment the following line for development environment
 # Sys.setenv(R_CONFIG_ACTIVE = "development") 
 
 source('ui-extension.R')
