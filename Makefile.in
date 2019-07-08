@@ -97,6 +97,7 @@ ifneq ($(shell pwd),$(PREFIX))
 	@cp -v *.R $(PREFIX)/
 	@cp -v *.yml $(PREFIX)/
 	@cp -vR mysql $(PREFIX)/
+	@cp -vR docker $(PREFIX)/
 	@mkdir -p $(PREFIX)/shiny_logs
 endif
 	@cp -v docker-compose.service /etc/systemd/system/$(APP_NAME)@.service
