@@ -19,7 +19,6 @@ parse_yaml()
 
 prefix=`pwd`
 app=`basename $(pwd)`
-version=prod
 for arg in "$@"; do
     case "$arg" in
     --prefix=*)
@@ -28,15 +27,11 @@ for arg in "$@"; do
     --app=*)
         app=`echo $arg | sed 's/--app=//'`
         ;;
-    --version=*)
-        version=`echo $arg | sed 's/--version=//'`
-        ;;
     --help)
         echo 'usage: ./configure [options]'
         echo 'options:'
         echo '  --prefix=<path>: installation prefix where to install'
         echo '  --app=<name>: application name'
-        echo '  --version=<version>: version to be compiled'
         echo 'all invalid options are silently ignored'
         exit 0
         ;;
@@ -48,7 +43,6 @@ parse_yaml docker-compose.yml > Makefile
 echo "" >> Makefile
 echo "PREFIX = $prefix" >> Makefile
 echo "APP_NAME = $app" >> Makefile
-echo "VERSION = $version" >> Makefile
 echo "" >> Makefile
 echo "DD = $(which docker)" >> Makefile
 echo "DC = $(which docker-compose)" >> Makefile

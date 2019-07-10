@@ -21,3 +21,8 @@ services:
     volumes:
       - '.:/srv/shiny-server/learning-analytics-camaleon'
       - './shiny_logs:/var/log/shiny-server'
+## Uncomment the following lines to run a development environment
+## through the docker-compose 
+#  dev:
+#    image: geiser/r-studio
+#  volumes:

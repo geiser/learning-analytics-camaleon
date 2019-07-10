@@ -12,8 +12,8 @@ RUN apt-get update -qq && apt-get install -y \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Install R packages
-RUN install2.r DBI \
-	&& install2.r RMySQL
+RUN install2.r -s DBI \
+	&& install2.r -s RMySQL
 
 # Making executable
 EXPOSE 8080

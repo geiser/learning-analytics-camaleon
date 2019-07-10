@@ -80,7 +80,7 @@ sudo systemctl daemon-reload
 
 Examples:
 ```
-curl --data '{"key":"user", "filters":{"school": [171]}}' -X POST "http://geiser.tech:8080/learning-analytics/v0.09/choices" -H  "accept: application/json" 
+curl --data '{"key":"user", "filters":{"school": [171]}}' -X POST "http://127.0.0.1:8080/learning-analytics/v0.09/choices" -H  "accept: application/json" 
 ```   
 
 
@@ -102,7 +102,7 @@ curl --data '{"key":"user", "filters":{"school": [171]}}' -X POST "http://geiser
 
 Examples:
 ```
-curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://geiser.tech:8080/learning-analytics/v0.09/learning-performance" -H  "accept: application/json" 
+curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://127.0.0.1:8080/learning-analytics/v0.09/learning-performance" -H  "accept: application/json" 
 ```
 
 
@@ -125,7 +125,7 @@ curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options
 
 Examples:
 ```
-curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://geiser.tech:8080/learning-analytics/v0.09/learning-performance/as.plotly/radar" -H "accept: application/json"
+curl --data '{"filters":{"grade": [1344,1345], "domain": [43, 44, 45]}, "options":{"typeLearningPerformance": "pmc"}}' -X POST "http://127.0.0.1:8080/learning-analytics/v0.09/learning-performance/as.plotly/radar" -H "accept: application/json"
 ```
 
 

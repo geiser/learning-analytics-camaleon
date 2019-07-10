@@ -35,6 +35,13 @@ else
 	$(DC) -p $(APP_NAME) run --rm --service-ports $(service)
 endif
 
+shell: config.yml ## Run interactive shell in the container of service
+ifndef service
+	$(error service variable is not set. Use 'make shell service={service}')
+else
+	$(DC) -p $(APP_NAME) run --rm --entrypoint /bin/bash $(service)
+endif
+
 up: config.yml ## Spin up the project services as containers
 	$(DC) -p $(APP_NAME) up --no-build -d $(service)
 
@@ -67,8 +74,8 @@ publish-version: tag-version ## Publish the `{version}` taged container to the d
 ifndef service
 	$(error service variable is not set. Use 'make publish-version service={service}')
 else
-	@echo 'publish $(VERSION) to docker.io/$(services_$(service)_image):$(VERSION)'
-	$(DD) push $(services_$(service)_image):$(VERSION)
+	@echo 'publish to docker.io/$(services_$(service)_image):$(services_$(service)_build_target)'
+	$(DD) push $(services_$(service)_image):$(services_$(service)_build_target)
 endif
 
 # Docker tagging
@@ -79,7 +86,7 @@ ifndef service
 	$(error service variable is not set. Use 'make tag-latest service={service}')
 else
 	@echo 'create tag latest for $(services_$(service)_image)'
-	$(DD) tag $(services_$(service)_image):$(VERSION) $(services_$(service)_image):latest
+	$(DD) tag $(services_$(service)_image) $(services_$(service)_image):latest
 endif
 
 tag-version: ## Tagging imagen of a service with the `{version}` tag, use: make service={service} tag-version
@@ -87,7 +94,7 @@ ifndef service
 	$(error service variable is not set. Use 'make tag-version service={service}')
 else
 	@echo 'create tag version for $(services_$(service)_image)'
-	$(DD) tag $(services_$(service)_image):$(VERSION) $(services_$(service)_image):$(VERSION)
+	$(DD) tag $(services_$(service)_image) $(services_$(service)_image):$(services_$(service)_build_target)
 endif
 
 # Docker installing as systemd
@@ -107,4 +114,8 @@ prune: ## clean all that is not actively used
 	$(DD) system prune -af
 
 version: ## output to version
-	@echo $(VERSION)
+ifndef service
+	$(error service variable is not set. Use 'make version service={service}')
+else
+	@echo $(services_$(service)_build_target)
+endif
