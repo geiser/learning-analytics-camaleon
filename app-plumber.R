@@ -8,4 +8,4 @@ Sys.setenv(R_CONFIG_ACTIVE = "development")
 
 library(plumber)
 r <- plumb("api-plumber.R")
-r$run(port=8080, swagger=T))
+r$run(port=8080, swagger=T)
