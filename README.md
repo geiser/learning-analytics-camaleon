@@ -10,7 +10,7 @@ Requirements:
 - Docker (>= 18.06.0)
 - Docker Compose (>= 1.22.0)
 
-1. Procedure to install requirements in Ubuntu 18.04:
+Procedure to install requirements in Ubuntu 18.04:
 ```
 sudo apt-get purge docker docker-engine docker.io docker-ce
 sudo apt-get update
@@ -27,14 +27,14 @@ sudo systemctl start docker
 sudo systemctl enable docker
 ```
 
-2. Download source code:
+1. Download source code:
 ```
 git clone https://github.com/geiser/learning-analytics-camaleon.git
 ```
 
-3. Configure database in file `config.yml` (example is available in `config.default.yml`)
+2. Configure database in file `config.yml` (example is available in `config.default.yml`)
 
-4. Configure and build imagens to run the project as container
+3. Configure and build imagens to run the project as container
 ```
 cd learning-analytics-camaleon
 ./configure
@@ -44,7 +44,7 @@ make
   * Use `make run service={service}` to run only one service {plumber, shiny} of the project. E.g. `make run service=shiny`
   * Use `make help` to view more options
 
-5. Install the project as service using systemd
+4. Install the project as service using systemd
 ```
 sudo make install
 ```
