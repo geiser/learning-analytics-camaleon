@@ -117,7 +117,7 @@ endif
 # Development environment
 dev:
 	@$(DD) pull geiser/r-studio:latest
-	$(DD) run -i -t --rm --name="$(APP_NAME)_dev" $(PORT_OPTIONS) $(VOLUME_OPTIONS) geiser/r-studio:latest
+	$(DD) run -i -t --rm --name="$(APP_NAME)_dev" -p=8787:8787 -v $(shell pwd):/home/gcc geiser/r-studio:latest
 	
 # HELPERS
 prune: ## clean all that is not actively used
