@@ -1,3 +1,4 @@
+.rstudio
 shiny_logs/*
 config.yml
 .DS_Store

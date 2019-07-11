@@ -1,3 +1,8 @@
+# import dev.cfg
+devcnf ?= dev.cfg
+include $(devcnf)
+export $(shell sed 's/=.*//' $(devcnf))
+
 # HELP: This will output the help for each task
 .PHONY: help
 
@@ -109,6 +114,11 @@ ifneq ($(shell pwd),$(PREFIX))
 endif
 	@cp -v docker-compose.service /etc/systemd/system/$(APP_NAME)@.service
 
+# Development environment
+dev:
+	@$(DD) pull geiser/r-studio:latest
+	$(DD) run -i -t --rm --name="$(APP_NAME)_dev" $(PORT_OPTIONS) $(VOLUME_OPTIONS) geiser/r-studio:latest
+	
 # HELPERS
 prune: ## clean all that is not actively used
 	$(DD) system prune -af
