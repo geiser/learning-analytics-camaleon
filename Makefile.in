@@ -1,7 +1,3 @@
-# import dev.cfg
-devcnf ?= dev.cfg
-include $(devcnf)
-export $(shell sed 's/=.*//' $(devcnf))
 
 # HELP: This will output the help for each task
 .PHONY: help
@@ -115,7 +111,7 @@ endif
 	@cp -v docker-compose.service /etc/systemd/system/$(APP_NAME)@.service
 
 # Development environment
-dev:
+dev: ## Start r-server in http://127.0.0.0.1:8787/ to continue with the development
 	@$(DD) pull geiser/r-studio:latest
 	$(DD) run -i -t --rm --name="$(APP_NAME)_dev" -p=8787:8787 -v $(shell pwd):/home/gcc geiser/r-studio:latest
 	
