@@ -27,6 +27,7 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
+The output will look something like this: ```docker-compose version 1.23.1, build b02f1306```
 
 
 Setup the docker as service and run it at startup
